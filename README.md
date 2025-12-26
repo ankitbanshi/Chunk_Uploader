@@ -1,10 +1,6 @@
-#  Resilient Chunked File Uploader
+# Resilient Chunked File Uploader
 
 A robust, production-ready file uploader built with **React**, **Node.js**, and **MySQL**. It supports **chunked uploads**, **automatic retries**, **pause/resume capabilities**, and **resiliency** against network failures and server crashes.
-
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Docker](https://img.shields.io/badge/docker-ready-blue)
-![Status](https://img.shields.io/badge/status-stable-green)
 
 ---
 
@@ -30,7 +26,7 @@ A robust, production-ready file uploader built with **React**, **Node.js**, and 
 ### Backend
 - **Runtime**: Node.js (Express)
 - **Database**: MySQL (using `mysql2` with connection pooling)
-- **File Handling**: Native `fs` streams & `yauzl` for ZIP inspection.
+- **File Handling**: Native `fs` streams & `yauzl` for ZIP inspection
 
 ---
 
@@ -39,68 +35,121 @@ A robust, production-ready file uploader built with **React**, **Node.js**, and 
 The easiest way to run the application is using Docker Compose.
 
 ### Prerequisites
-- Docker & Docker Compose installed.
+- Docker & Docker Compose installed
 
 ### Steps
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/ankitbanshi/Chunk_Uploader.git](https://github.com/ankitbanshi/Chunk_Uploader.git)
-   cd chunk-uploader
-2. **Run with Docker Compose:**
-    docker-compose up --build
-Access the App:
-Frontend: http://localhost:5173
-Backend: http://localhost:3002
-Database: Port 3306 (Internal)
 
-⚙️ Manual Setup (Local Development)If you prefer running without Docker:
-1. **Database Setup**
-Ensure you have a MySQL instance running.
--- CREATE DATABASE chunked_upload_db;
--- The backend will automatically create tables on startup.
-2. **backend Setup**
+1. **Clone the repository:**
+```bash
+   git clone https://github.com/ankitbanshi/Chunk_Uploader.git
+   cd chunk-uploader
+```
+
+2. **Run with Docker Compose:**
+```bash
+   docker-compose up --build
+```
+
+3. **Access the App:**
+   - **Frontend**: [http://localhost:5173](http://localhost:5173)
+   - **Backend**: [http://localhost:3002](http://localhost:3002)
+   - **Database**: Port 3306 (Internal)
+
+---
+
+## 💻 Manual Setup (Local Development)
+
+If you prefer running without Docker:
+
+### 1. Database Setup
+
+Ensure you have a MySQL instance running:
+```sql
+CREATE DATABASE chunked_upload_db;
+```
+
+> The backend will automatically create tables on startup.
+
+### 2. Backend Setup
+```bash
 cd backend
 npm install
-Create a .env file in the backend folder:Code snippetPORT=3002
+```
+
+Create a `.env` file in the `backend` folder:
+```env
+PORT=3002
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=yourpassword
 DB_NAME=chunked_upload_db
-Start the server:node server.js
-3. **Frontend Setup**
+```
+
+Start the server:
+```bash
+node server.js
+```
+
+### 3. Frontend Setup
+```bash
 cd frontend
 npm install
-Create a .env file in the frontend folder:
-Code snippetVITE_BACKEND_URL=http://localhost:3002
-Start the client:npm run dev
-📡 API Endpoints
-Method               Endpoint                  Description
-GET                /upload/status        Checks if a file has been partially uploaded. Returns missing chunk indexes.
-POST               /upload/chunk         Receives a binary chunk. Headers: x-upload-id, x-chunk-index, x-chunk-start.
-POST               /upload/finalize      Triggered when all chunks are sent. Reassembles the file and verifies hash.
+```
 
+Create a `.env` file in the `frontend` folder:
+```env
+VITE_BACKEND_URL=http://localhost:3002
+```
 
-📂 Project Structure
+Start the client:
+```bash
+npm run dev
+```
+
+---
+
+## 📡 API Endpoints
+
+| Method | Endpoint            | Description                                                                                     |
+|--------|---------------------|-------------------------------------------------------------------------------------------------|
+| GET    | `/upload/status`    | Checks if a file has been partially uploaded. Returns missing chunk indexes.                    |
+| POST   | `/upload/chunk`     | Receives a binary chunk. Headers: `x-upload-id`, `x-chunk-index`, `x-chunk-start`.             |
+| POST   | `/upload/finalize`  | Triggered when all chunks are sent. Reassembles the file and verifies hash.                     |
+
+---
+
+## 📂 Project Structure
+```
 chunk-uploader/
 ├── docker-compose.yml       # Orchestration
 ├── backend/
-│   ├── index.js             # Main server logic
+│   ├── index.js            # Main server logic
 │   ├── Dockerfile
-│   ├── uploads/             # Final assembled files
-│   └── temp/                # Temporary partial chunks
+│   ├── uploads/            # Final assembled files
+│   └── temp/               # Temporary partial chunks
 └── frontend/
     ├── src/
-    │   ├── App.jsx          # Main UI & Upload Logic
-    │   └── App.css          # Styling
+    │   ├── App.jsx         # Main UI & Upload Logic
+    │   └── App.css         # Styling
     └── Dockerfile
-🐛 TroubleshootingCommon Issues
-1. EXDEV:cross-device link not permitted
-- Cause: Docker volumes for /temp and /uploads are on different virtual filesystems.
-- Fix: The backend uses a custom moveFile helper that detects this error and automatically switches to a "Copy & Delete" strategy.
- 2. 409 Conflict on Finalization
-- Cause: The frontend sends the "Finalize" request multiple times.
-- Fix: The backend is idempotent; it detects if a file is already being processed and returns a 200 OK success message instead of an error.
-3. Database Connection Failed
--Fix: Ensure the DB_HOST in .env matches your setup. Use localhost for manual runs and chunk_db (service name) for Docker.
+```
 
+---
 
+## 🐛 Troubleshooting: Common Issues
+
+### 1. `EXDEV: cross-device link not permitted`
+
+- **Cause**: Docker volumes for `/temp` and `/uploads` are on different virtual filesystems.
+- **Fix**: The backend uses a custom `moveFile` helper that detects this error and automatically switches to a "Copy & Delete" strategy.
+
+### 2. `409 Conflict` on Finalization
+
+- **Cause**: The frontend sends the "Finalize" request multiple times.
+- **Fix**: The backend is idempotent; it detects if a file is already being processed and returns a `200 OK` success message instead of an error.
+
+### 3. Database Connection Failed
+
+- **Fix**: Ensure the `DB_HOST` in `.env` matches your setup. Use `localhost` for manual runs and `chunk_db` (service name) for Docker.
+
+---
