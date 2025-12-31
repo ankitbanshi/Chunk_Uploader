@@ -1,19 +1,18 @@
 version: '3.8'
 
 services:
-  # --- Service 1: Database ---
+ 
   db:
     image: mysql:8.0
     container_name: chunk_db
     restart: always
     environment:
-      MYSQL_DATABASE: vizexperts_db
-      MYSQL_USER: viz_user
-      MYSQL_PASSWORD: viz123
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     ports:
-      # Maps Docker port 3306 to your PC port 3307 (avoids conflict with local MySQL)
-      - "3307:3306"
+      - "${DB_EXTERNAL_PORT}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -23,23 +22,21 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  # --- Service 2: Backend ---
+      
   backend:
     build: ./backend
     container_name: chunk_backend
     restart: always
     ports:
-      - "3002:3002"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
     environment:
-      # --- CRITICAL SECTION: DO NOT CHANGE INDENTATION ---
+  
       DB_HOST: db
       DB_PORT: 3306
-      DB_USER: viz_user
-      DB_PASSWORD: viz123
-      DB_NAME: vizexperts_db
-      PORT: 3002
-      # ---------------------------------------------------
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      PORT: ${BACKEND_PORT}
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -51,14 +48,14 @@ services:
     networks:
       - app_network
 
-  # --- Service 3: Frontend ---
   frontend:
     build: ./frontend
     container_name: chunk_frontend
     ports:
-      - "5174:5173"
+      - "${FRONTEND_PORT}:5173"
     environment:
-      - VITE_BACKEND_URL=http://localhost:3002
+
+      - VITE_BACKEND_URL=http://localhost:${BACKEND_PORT}
     volumes:
       - ./frontend:/app
       - /app/node_modules
